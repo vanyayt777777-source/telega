@@ -2517,15 +2517,23 @@ if __name__ == "__main__":
     print(f"Токен бота загружен из переменных окружения")
     print("Ожидание подключения...")
     
-    # Запускаем фоновые задачи после старта бота
-    @app.on_startup()
-    async def startup(client):
-        """Выполняется при запуске бота"""
-        print("✅ Бот успешно запущен!")
-        # Запускаем фоновые задачи
-        asyncio.create_task(start_background_tasks())
+    async def main():
+        """Главная функция запуска бота"""
+        try:
+            # Запускаем клиент
+            await app.start()
+            print("✅ Бот успешно запущен!")
+            
+            # Запускаем фоновые задачи
+            asyncio.create_task(start_background_tasks())
+            
+            # Держим бота запущенным
+            await asyncio.Event().wait()
+            
+        except Exception as e:
+            print(f"❌ Ошибка запуска бота: {e}")
+        finally:
+            await app.stop()
     
-    try:
-        app.run()
-    except Exception as e:
-        print(f"❌ Ошибка запуска бота: {e}")
+    # Запускаем главную функцию
+    asyncio.run(main())
