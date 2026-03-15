@@ -2517,23 +2517,39 @@ if __name__ == "__main__":
     print(f"Токен бота загружен из переменных окружения")
     print("Ожидание подключения...")
     
-    async def main():
-        """Главная функция запуска бота"""
+    # Функция для запуска фоновых задач
+    async def start_background():
+        """Запускает фоновые задачи"""
         try:
-            # Запускаем клиент
-            await app.start()
-            print("✅ Бот успешно запущен!")
+            # Ждем немного, чтобы бот точно запустился
+            await asyncio.sleep(3)
+            print("🚀 Запуск фоновых задач...")
             
-            # Запускаем фоновые задачи
-            asyncio.create_task(start_background_tasks())
+            # Запускаем проверку статуса аккаунтов
+            asyncio.create_task(check_accounts_status())
             
-            # Держим бота запущенным
-            await asyncio.Event().wait()
+            # Запускаем проверку просроченных подписок
+            asyncio.create_task(check_expired_subscriptions())
             
+            print("✅ Фоновые задачи успешно запущены")
         except Exception as e:
-            print(f"❌ Ошибка запуска бота: {e}")
-        finally:
-            await app.stop()
+            print(f"❌ Ошибка запуска фоновых задач: {e}")
     
-    # Запускаем главную функцию
-    asyncio.run(main())
+    # Запускаем бота
+    try:
+        # Получаем текущий event loop
+        loop = asyncio.get_event_loop()
+        
+        # Запускаем бота в фоне
+        loop.create_task(app.run())
+        
+        # Запускаем фоновые задачи
+        loop.create_task(start_background())
+        
+        # Запускаем event loop
+        loop.run_forever()
+        
+    except KeyboardInterrupt:
+        print("\n👋 Бот остановлен")
+    except Exception as e:
+        print(f"❌ Ошибка запуска бота: {e}")
